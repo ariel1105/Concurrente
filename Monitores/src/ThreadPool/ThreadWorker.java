@@ -20,9 +20,7 @@ public class ThreadWorker extends Thread{
     public void run(){
         while (true){
             Runnable task = (Runnable) this.buffer.read();
-            this.threadPool.beginWork();
             task.run();
-            this.threadPool.finishWork();
         }
     }
 }
