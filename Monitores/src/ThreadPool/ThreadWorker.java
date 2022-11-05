@@ -6,7 +6,10 @@ public class ThreadWorker extends Thread{
 
     private Buffer buffer;
 
-    public ThreadWorker(Buffer buffer){
+    private ThreadPool threadPool;
+
+    public ThreadWorker(Buffer buffer, ThreadPool threadPool){
+        this.threadPool = threadPool;
         this.buffer = buffer;
     }
 
@@ -16,9 +19,10 @@ public class ThreadWorker extends Thread{
 
     public void run(){
         while (true){
-            
             Runnable task = (Runnable) this.buffer.read();
+            this.threadPool.beginWork();
             task.run();
+            this.threadPool.finishWork();
         }
     }
 }

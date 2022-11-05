@@ -16,35 +16,44 @@ public class ThreadPool {
         this.tasks = tasks;
         this.workers = workers;
         for(int i = 0; i<workers; i++){
-            ThreadWorker worker = new ThreadWorker(this.buffer);
+            ThreadWorker worker = new ThreadWorker(this.buffer, this);
             worker.start();
         }
     }
-
-    public synchronized void beginWork() throws InterruptedException {
-        while(this.working == this.workers){
-            wait();
-        }
-        working++;
+    public synchronized void beginWork(){
+        this.working++;
     }
-
     public synchronized void finishWork(){
-        working--;
+        this.working--;
+        this.tasks--;
+        System.out.println("tasks: "+ this.tasks);
         notify();
     }
+    public Boolean isDone(){
+        return this.tasks == 0;
+    }
 
-    public synchronized void launch(){
+    public Boolean idleExists(){
+        return this.working < this.workers;
+    }
+
+    public synchronized void launch() throws InterruptedException {
+        while(!idleExists()){
+            wait();
+        }
         DummyTask task = new DummyTask();
         this.buffer.write(task);
+        notify();
     }
 
     public synchronized void stop() throws InterruptedException {
         PoisonPill poison = new PoisonPill();
-        while(!(tasks == 0)){
+        while(!(isDone())){
             wait();
         }
         for(int i = 0; i < this.workers; i++){
             this.buffer.write(poison);
+            notify();
         }
     }
 }
